@@ -1,64 +1,19 @@
-// HTMLテキストをDOMにパースして返す
-async function fetchHTML(url) {
+// 汎用 fetch + HTML パース
+export async function fetchHTML(url) {
+    console.log(url,'のHTMLを抽出中');
   const res = await fetch(url, { credentials: "include" });
   const text = await res.text();
   return new DOMParser().parseFromString(text, "text/html");
 }
 
-
-// ============================================================
-// ① シラバス本体ページから担当教員と教室を抽出
-//    ↓あなたの LMS 専用のセレクタを使った確定版
-// ============================================================
-function parseSyllabus(doc) {
-    console.log("シラバス本体ページから担当教員と教室を抽出中")
-  // 担当教員 ＝ .c-dl-2col__itemの 2番目 の dd
-  const teacher = doc
-    .querySelector(".c-dl-2col__item:nth-child(2) dd")
-    ?.textContent.trim();
-
-  // 教室 ＝ .c-dl-2col__itemの 5番目 の dd
-  const room = doc
-    .querySelector(".c-dl-2col__item:nth-child(5) dd")
-    ?.textContent.trim();
+// シラバスページから担当教員・教室を抽出
+export function parseSyllabus(doc) {
+    console.log('シラバスから担当教員・教室を抽出する関数を実行中');
+  const teacher = doc.querySelector(".c-dl-2col__item:nth-child(2) > dd")?.textContent.trim();
+  const room = doc.querySelector(".c-dl-2col__item:nth-child(5) > dd")?.textContent.trim();
 
   return {
-    teacher: teacher || "（教員不明）",
-    room: room || "（教室不明）",
+    teacher: teacher ?? "（教員不明）",
+    room: room ?? "（教室不明）"
   };
-}
-
-
-// ============================================================
-// ② 授業詳細ページ → 「シラバス Activity」のリンクを取得
-// ============================================================
-function findSyllabusActivity(doc) {
-    console.log("授業詳細ページからシラバスアクティビティページへ移動中")
-  const link = doc.querySelector('[data-activityname="シラバス"] .activityname a');
-  return link ? link.href : null;
-}
-
-
-// ============================================================
-// ③ シラバス Activity ページ → 最終シラバスページ URL を取得
-// ============================================================
-function findSyllabusFinal(doc) {
-    console.log("シラバスアクティビティページからシラバスページへ移動中")
-  const link = doc.querySelector(".urlworkaround a");
-  return link ? link.href : null;
-}
-
-
-// ============================================================
-// ④ 時間割の要素に 担当教員／教室 を挿入
-// ============================================================
-function insertInfo(el, info) {
-    console.log("時間割要素に担当教員と教室を挿入中")
-  const box = document.createElement("div");
-  box.className = "lms-extra-info";
-  box.innerHTML = `
-    <div><b>担当：</b>${info.teacher}</div>
-    <div><b>教室：</b>${info.room}</div>
-  `;
-  el.appendChild(box);
 }

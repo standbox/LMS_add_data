@@ -1,38 +1,54 @@
-(async function() {
 
-  // 1. 時間割ページのすべての授業リンクを集める
-  const classLinks = document.querySelectorAll(
-    "#tttimetablecontentcollapse > div > table > tbody > tr > td > a"
-  );
+// 時間割ページの授業リンクを集める
+const classLinks = document.querySelectorAll(
+  "#tttimetablecontentcollapse > div > table > tbody > tr > td > a"
+);
+console.log('content.js起動中');
+classLinks.forEach(a => {
+  processClassCell(a);
+});
 
-  for (const a of classLinks) {
-    try {
-      // 2. 授業詳細ページを取得
-      const classPage = await fetchHTML(a.href);
+async function processClassCell(a) {
+  // セル <td> を取得（後で追記するため）
+  console.log('processClassCellし始めた(アクセスから追加までの関数)');
+  const td = a.closest("td");
 
-      // 3. 授業詳細ページから「シラバス Activity」リンクを探す
-      const syllabusActivityURL = findSyllabusActivity(classPage);
-      if (!syllabusActivityURL) continue;
+  // ① 授業詳細ページを取る
+  const detailDoc = await fetchHTML(a.href);
 
-      // 4. シラバス Activity ページを取得
-      const syllabusActivityPage = await fetchHTML(syllabusActivityURL);
+  // ② シラバスアクティビティへのリンクを探す
+  const actLink = detailDoc.querySelector('[data-activityname="シラバス"] .activityname a');
+  if (!actLink) return;
+  console.log('シラバスアクティビティへのリンクを見つけられた');
+  const actDoc = await fetchHTML(actLink.href);
 
-      // 5. 最終シラバスページへのリンクを探す
-      const syllabusFinalURL = findSyllabusFinal(syllabusActivityPage);
-      if (!syllabusFinalURL) continue;
+  // ③ シラバス本体ページへのリンク（.urlworkaround a）
+  const finalLink = actDoc.querySelector(".urlworkaround a");
+  if (!finalLink) return;
 
-      // 6. 最終シラバスページ取得
-      const syllabusFinalPage = await fetchHTML(syllabusFinalURL);
+  const syllabusDoc = await fetchHTML(finalLink.href);
 
-      // 7. シラバスページから担当教員と教室を抽出
-      const info = parseSyllabus(syllabusFinalPage);
+  // ④ 担当教員・教室を抽出
+  const info = parseSyllabus(syllabusDoc);
 
-      // 8. 時間割の該当セルに情報を書き込む
-      insertInfo(a.parentElement, info);
+  // ⑤ TD の下に追記
+  insertInfo(td, info);
+}
 
-    } catch (e) {
-      console.error("LMS scraping error:", e);
-    }
-  }
+// 追加表示を <td> の下部に挿入
+function insertInfo(td, info) {
+    console.log('追記しはじめた');
+  const box = document.createElement("div");
+  box.style.marginTop = "4px";
+  box.style.fontSize = "0.8em";
+  box.style.background = "#eef5ff";
+  box.style.padding = "4px";
+  box.style.borderRadius = "4px";
 
-})();
+  box.innerHTML = `
+    <div><b>担当：</b>${info.teacher}</div>
+    <div><b>教室：</b>${info.room}</div>
+  `;
+
+  td.appendChild(box);
+}
