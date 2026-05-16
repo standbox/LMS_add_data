@@ -1,66 +1,38 @@
-//test
-console.log("LMS Timetable Enhancer loaded.");
+(async function() {
 
-// 時間割ページ内で授業要素を取得するセレクタ
-// ※あなたのLMSに合わせて修正
-const COURSE_SELECTOR = ".course-item, .timetable-course, .course";
+  // 1. 時間割ページのすべての授業リンクを集める
+  const classLinks = document.querySelectorAll(
+    "#tttimetablecontentcollapse > div > table > tbody > tr > td > a"
+  );
 
-/**
- * 特定の授業セルを拡張する
- */
-async function enhanceCourseElement(el) {
-  const courseLink = el.querySelector("a")?.href;
-  if (!courseLink) return;
+  for (const a of classLinks) {
+    try {
+      // 2. 授業詳細ページを取得
+      const classPage = await fetchHTML(a.href);
 
-  // キャッシュ確認
-  const cached = await chrome.storage.local.get(courseLink);
-  if (cached[courseLink]) {
-    insertInfo(el, cached[courseLink]);
-    return;
-  }
+      // 3. 授業詳細ページから「シラバス Activity」リンクを探す
+      const syllabusActivityURL = findSyllabusActivity(classPage);
+      if (!syllabusActivityURL) continue;
 
-  try {
-    // 授業ページ取得
-    const courseDoc = await fetchHTML(courseLink);
+      // 4. シラバス Activity ページを取得
+      const syllabusActivityPage = await fetchHTML(syllabusActivityURL);
 
-    // シラバスリンクを発見
-    const syllabusLink = findSyllabusLink(courseDoc);
-    if (!syllabusLink) return;
+      // 5. 最終シラバスページへのリンクを探す
+      const syllabusFinalURL = findSyllabusFinal(syllabusActivityPage);
+      if (!syllabusFinalURL) continue;
 
-    // シラバスページ取得
-    const syllabusDoc = await fetchHTML(syllabusLink);
+      // 6. 最終シラバスページ取得
+      const syllabusFinalPage = await fetchHTML(syllabusFinalURL);
 
-    // 教員情報抽出
-    const info = parseSyllabus(syllabusDoc);
+      // 7. シラバスページから担当教員と教室を抽出
+      const info = parseSyllabus(syllabusFinalPage);
 
-    // DOM に追加
-    insertInfo(el, info);
+      // 8. 時間割の該当セルに情報を書き込む
+      insertInfo(a.parentElement, info);
 
-    // キャッシュ保存
-    await chrome.storage.local.set({ [courseLink]: info });
-  } catch (e) {
-    console.error("Failed to enhance course:", e);
-  }
-}
-
-/**
- * ページ内のすべての授業セルに適用する
- */
-function enhanceAll() {
-  const courseElements = document.querySelectorAll(COURSE_SELECTOR);
-  courseElements.forEach(el => {
-    if (!el.dataset.enhanced) {
-      el.dataset.enhanced = "1";
-      enhanceCourseElement(el);
+    } catch (e) {
+      console.error("LMS scraping error:", e);
     }
-  });
-}
+  }
 
-// 初期実行
-enhanceAll();
-
-// SPA対応：ページ更新を監視
-const observer = new MutationObserver(() => {
-  enhanceAll();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+})();
