@@ -3,16 +3,12 @@
   "name": "LMS more convenient",
   "version": "1.0.0",
   "description": "時間割から授業ページとシラバスをクロールして担当教員・教室を取得する拡張機能",
-  "permissions": ["scripting", "activeTab"],
-  "host_permissions": [
-    "https://*.isct.ac.jp/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "permissions": ["scripting", "activeTab","storage"],
+  "host_permissions": ["https://*.isct.ac.jp/*/"],
+  "background": ["background.js"],
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": ["https://*.isct.ac.jp/"],
       "js": ["utils.js", "content.js"],
       "css":["style.css"],
       "run_at": "document_idle"

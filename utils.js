@@ -11,7 +11,7 @@ async function fetchHTML(url) {
 //    ↓あなたの LMS 専用のセレクタを使った確定版
 // ============================================================
 function parseSyllabus(doc) {
-
+    console.log("シラバス本体ページから担当教員と教室を抽出中")
   // 担当教員 ＝ .c-dl-2col__itemの 2番目 の dd
   const teacher = doc
     .querySelector(".c-dl-2col__item:nth-child(2) dd")
@@ -33,6 +33,7 @@ function parseSyllabus(doc) {
 // ② 授業詳細ページ → 「シラバス Activity」のリンクを取得
 // ============================================================
 function findSyllabusActivity(doc) {
+    console.log("授業詳細ページからシラバスアクティビティページへ移動中")
   const link = doc.querySelector('[data-activityname="シラバス"] .activityname a');
   return link ? link.href : null;
 }
@@ -42,6 +43,7 @@ function findSyllabusActivity(doc) {
 // ③ シラバス Activity ページ → 最終シラバスページ URL を取得
 // ============================================================
 function findSyllabusFinal(doc) {
+    console.log("シラバスアクティビティページからシラバスページへ移動中")
   const link = doc.querySelector(".urlworkaround a");
   return link ? link.href : null;
 }
@@ -51,6 +53,7 @@ function findSyllabusFinal(doc) {
 // ④ 時間割の要素に 担当教員／教室 を挿入
 // ============================================================
 function insertInfo(el, info) {
+    console.log("時間割要素に担当教員と教室を挿入中")
   const box = document.createElement("div");
   box.className = "lms-extra-info";
   box.innerHTML = `
