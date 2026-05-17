@@ -1,7 +1,7 @@
 console.log('content.js起動中');
 // 時間割ページの授業リンクを集める
 const classLinks = document.querySelectorAll(
-  "#tttimetablecontentcollapse > div > table > tbody >:nth-child(even) > td a"
+  "#tttimetablecontentcollapse > div > table > tbody >:nth-child(odd) > td a"
 );
 classLinks.forEach(a => {
   processClassCell(a);
@@ -45,8 +45,8 @@ function insertInfo(td, info) {
   box.style.borderRadius = "4px";
 
   box.innerHTML = `
-    <div><b>担当：</b>${info.teacher}</div>
-    <div><b>教室：</b>${info.room}</div>
+    <div>${info.teacher}</div><br>
+    <div>${info.room}</div>
   `;
 
   td.appendChild(box);

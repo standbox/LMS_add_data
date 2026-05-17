@@ -7,3 +7,22 @@
   color: #333;
   line-height: 1.3em;
 }
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(even){
+    display:none;
+}
+
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(1)>th::after{
+    content :",2";
+}
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(3)>th::after{
+    content :",4";
+}
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(5)>th::after{
+    content :",6";
+}
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(7)>th::after{
+    content :",8";
+}
+#tttimetablecontentcollapse > div > table > tbody >:nth-child(9)>th::after{
+    content :",10";
+}
