@@ -1,9 +1,8 @@
-
+console.log('content.js起動中');
 // 時間割ページの授業リンクを集める
 const classLinks = document.querySelectorAll(
-  "#tttimetablecontentcollapse > div > table > tbody > tr > td > a"
+  "#tttimetablecontentcollapse > div > table > tbody >:nth-child(even) > td a"
 );
-console.log('content.js起動中');
 classLinks.forEach(a => {
   processClassCell(a);
 });

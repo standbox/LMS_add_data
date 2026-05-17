@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "description": "時間割から授業ページとシラバスをクロールして担当教員・教室を取得する拡張機能",
   "permissions": ["scripting", "activeTab","storage"],
-  "host_permissions": ["https://*.isct.ac.jp/*/"],
-  "background": ["background.js"],
+  "host_permissions": ["https://*.isct.ac.jp/*"],
+  "service_worker": ["background.js"],
   "content_scripts": [
     {
-      "matches": ["https://*.isct.ac.jp/"],
+      "matches": ["https://*.isct.ac.jp/*"],
       "js": ["utils.js", "content.js"],
       "css":["style.css"],
       "run_at": "document_idle"
