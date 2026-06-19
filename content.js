@@ -1,4 +1,3 @@
-console.log('content.js起動中');
 // 時間割ページの授業リンクを集める
 const classLinks = document.querySelectorAll(
   "#tttimetablecontentcollapse > div > table > tbody >:nth-child(odd) > td a"
@@ -8,29 +7,35 @@ classLinks.forEach(a => {
 });
 
 async function processClassCell(a) {
-  // セル <td> を取得（後で追記するため）
-  console.log('processClassCellし始めた(アクセスから追加までの関数)');
   const td = a.closest("td");
+  const cacheKey = "syllabus_" + btoa(a.href); // URLを暗号化してキーにする
 
-  // ① 授業詳細ページを取る
-  const detailDoc = await fetchHTML(a.href);
+  // 1. ストレージからデータを取得してみる
+  const result = await chrome.storage.local.get([cacheKey]);
+  
+  let info;
+  if (result[cacheKey]) {
+    console.log('キャッシュから読み込みました');
+    info = result[cacheKey];
+  } else {
+    console.log('キャッシュがないため新規取得します');
+    // 2. 既存の通信処理（fetchHTMLなど）を実行
+    const detailDoc = await fetchHTML(a.href);
+    const actLink = detailDoc.querySelector('[data-activityname="シラバス"] .activityname a');
+    if (!actLink) return;
+    
+    const actDoc = await fetchHTML(actLink.href);
+    const finalLink = actDoc.querySelector(".urlworkaround a");
+    if (!finalLink) return;
+    
+    const syllabusDoc = await fetchHTML(finalLink.href);
+    info = parseSyllabus(syllabusDoc);
 
-  // ② シラバスアクティビティへのリンクを探す
-  const actLink = detailDoc.querySelector('[data-activityname="シラバス"] .activityname a');
-  if (!actLink) return;
-  console.log('シラバスアクティビティへのリンクを見つけられた');
-  const actDoc = await fetchHTML(actLink.href);
+    // 3. 次回のために保存
+    await chrome.storage.local.set({ [cacheKey]: info });
+  }
 
-  // ③ シラバス本体ページへのリンク（.urlworkaround a）
-  const finalLink = actDoc.querySelector(".urlworkaround a");
-  if (!finalLink) return;
-
-  const syllabusDoc = await fetchHTML(finalLink.href);
-
-  // ④ 担当教員・教室を抽出
-  const info = parseSyllabus(syllabusDoc);
-
-  // ⑤ TD の下に追記
+  // 表示処理
   insertInfo(td, info);
 }
 
